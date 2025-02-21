@@ -5,9 +5,9 @@ export default function Home() {
   const [inputJson, setInputJson] = useState("");
   const [error, setError] = useState("");
   const [response, setResponse] = useState(null);
-  const [selectedFilters, setSelectedFilters] = useState([]); // Array to store multiple selected filters
+  const [selectedFilters, setSelectedFilters] = useState([]);
+  const exampleJson = `{ "data": ["M", "1", "334", "4", "B"] }`; // Example input
 
-  // Set document title to your roll number
   useEffect(() => {
     document.title = "22BCS11885";
   }, []);
@@ -16,7 +16,6 @@ export default function Home() {
     setError("");
     setResponse(null);
 
-    // Parse and validate JSON input
     let parsedData;
     try {
       parsedData = JSON.parse(inputJson);
@@ -29,28 +28,23 @@ export default function Home() {
       return;
     }
 
-    // Call the backend API with error handling
     try {
       const res = await axios.post(
-        "https://bajaj-backend-war0.onrender.com/bfhl", 
+        "https://bajaj-backend-war0.onrender.com/bfhl",
         parsedData,
-        { timeout: 10000 } // 10 second timeout
+        { timeout: 10000 }
       );
       setResponse(res.data);
     } catch (err) {
       console.error("API error:", err);
-      
-      // If server is down or not responding, generate local response
+
       if (err.code === "ECONNABORTED" || err.message.includes("Network Error") || !err.response) {
         const data = parsedData.data;
-        
-        // Process data locally as a fallback
         const numbers = data.filter(item => !isNaN(item));
         const alphabets = data.filter(item => isNaN(item) && item.length === 1 && /^[A-Za-z]$/.test(item));
         const highestAlphabet = alphabets.length > 0 ? 
           [alphabets.sort((a, b) => b.toLowerCase().localeCompare(a.toLowerCase()))[0]] : [];
-        
-        // Create fallback response
+
         const fallbackResponse = {
           is_success: true,
           user_id: "krishnas05",
@@ -60,20 +54,24 @@ export default function Home() {
           alphabets,
           highest_alphabet: highestAlphabet
         };
-        
+
         setResponse(fallbackResponse);
-        // setError("Server is unavailable. Showing locally processed results.");
       } else {
-        // Handle other API errors
         setError(`API Error: ${err.response?.data?.error || err.message}`);
       }
     }
   };
 
   const handleFilterChange = (e) => {
-    // Extract selected options and update the state
     const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value);
     setSelectedFilters(selectedOptions);
+  };
+
+  const handleCopyExample = () => {
+    setInputJson(exampleJson);
+    navigator.clipboard.writeText(exampleJson).then(() => {
+      alert("Example JSON copied to clipboard!");
+    });
   };
 
   const renderResponse = () => {
@@ -111,6 +109,16 @@ export default function Home() {
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8">Krishna Sharma - 22BCS11885</h1>
         <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Example JSON Input</h2>
+          <div className="bg-gray-200 p-4 rounded-md relative mb-4">
+            <pre className="text-sm">{exampleJson}</pre>
+            <button
+              className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 text-xs rounded-md hover:bg-blue-600"
+              onClick={handleCopyExample}
+            >
+              Copy
+            </button>
+          </div>
           <h2 className="text-xl font-bold mb-4">Enter JSON Input</h2>
           <textarea
             className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -135,7 +143,7 @@ export default function Home() {
             <div className="mt-6">
               <h2 className="text-xl font-bold mb-4">Filters</h2>
               <select
-                multiple // Enable multiple selection
+                multiple
                 className="w-full border p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={selectedFilters}
                 onChange={handleFilterChange}
