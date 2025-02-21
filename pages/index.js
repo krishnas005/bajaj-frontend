@@ -21,7 +21,7 @@ export default function Home() {
 
     // Call the backend API
     try {
-      const res = await axios.post("http://localhost:3001/bfhl", JSON.parse(inputJson));
+      const res = await axios.post("https://bajaj-backend-war0.onrender.com/bfhl", JSON.parse(inputJson));
       setResponse(res.data);
     } catch (err) {
       setError("Failed to fetch data from the backend");
